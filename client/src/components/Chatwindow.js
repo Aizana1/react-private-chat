@@ -12,7 +12,7 @@ const Chatwindow = (props) => {
   }
 
   const [messages, setMessages] = useState([])
-  const [timeSent, setTimeSent] = useState()
+  const [lastMessageTime, setLastMessageTime] = useState('')
 
   let messageContent = ''
   let ref;
@@ -23,12 +23,7 @@ const Chatwindow = (props) => {
 
   const onMessage = (e, content) => {
     e.preventDefault()
-    // console.log('Message is:', content)
-    localStorage.setItem('lastMessage',content)
-    const time = new Date().toLocaleTimeString()
-    setTimeSent(time)
-    localStorage.setItem('lastMessageTime',timeSent)
-
+   
     ref.target.value = ''
     if (props.selectedUser) {
       socket.emit('private message', {
@@ -37,9 +32,9 @@ const Chatwindow = (props) => {
       })
       setMessages((messages) => [
         ...messages,
-        { toUser: props.selectedUser.username, content, fromSelf: true },
+        { toUser: props.selectedUser.username, content, fromSelf: true, timestamp: new Date().toLocaleTimeString()
+        },
       ])
-
     }
   }
 
@@ -56,7 +51,8 @@ const Chatwindow = (props) => {
           className="my-message"
         >
           {message.content}
-        </div>
+          </div>
+          <span className="timeSection mine">  {message.timestamp}</span>        
         </>
       )
     if (
@@ -64,33 +60,42 @@ const Chatwindow = (props) => {
       message.fromUser === props.selectedUser.username
     )
       return (
+        <>
         <div
           key={index}
           style={{ textAlign: 'left' }}
           className="other-message"
         >
           {message.content}
-        </div>
+          </div>
+          <span className="timeSection other">  {message.timestamp}</span>   
+          </>
       )
   })
 
   socket.on('private message', ({ content, from }) => {
-    console.log(props.connectedUsers)
     let newMessages = {}
     for (let i = 0; i < props.connectedUsers.length; i++) {
       const user = props.connectedUsers[i]
       if (user.userID === from) {
-        console.log('Iteration:', i)
+        const time = new Date().toLocaleTimeString()
         newMessages = {
           fromUser: props.connectedUsers[i].username,
           content,
           fromSelf: false,
+          timestamp: time,
         }
         const messagesList = [...messages, newMessages]
         setMessages(messagesList)
       }
     }
+
   })
+  if (messages !== []){
+    localStorage.setItem('lastMessage',messages[messages.length-1]?.content)
+    localStorage.setItem('lastMessageTime',messages[messages.length-1]?.timestamp)
+  }
+ 
 
   return (
     <div className="chat-window">

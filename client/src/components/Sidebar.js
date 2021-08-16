@@ -2,16 +2,31 @@ import React, { useEffect, useState } from 'react'
 
 const Sidebar = (props) => {
   const userList = props.connectedUsers
-  //  const [lastMessage, setLastMessage] = useState('')
-  //  const [lastMessageTime, setLastMessageTime] = useState('')
+  const [lastMessage, setLastMessage] = useState(
+    localStorage.getItem('lastMessage'),
+  )
+  const [lastMessageTime, setLastMessageTime] = useState(
+    localStorage.getItem('lastMessageTime'),
+  )
 
-  //  useEffect(()=>{
-  //     setLastMessage(localStorage.getItem('lastMessage'))
-  //     setLastMessageTime(localStorage.getItem('lastMessageTime'))
+  useEffect(() => {
+    const interval = setInterval(() => {
+      let message = localStorage.getItem('lastMessage')
+      let time = localStorage.getItem('lastMessageTime')
+      if (message === 'undefined' && time === 'undefined') {
+        setLastMessage('')
+        setLastMessageTime('')
+      } else {
+        setLastMessage(message)
+        setLastMessageTime(time)
+      }
+    }, 1000)
+    return () => {
+      clearInterval(interval)
+    }
+  }, [])
 
-  //  },[])
 
-  console.log('In sidebar userlist:', userList)
   let selectedUser = ''
 
   const userName_from_click = (e) => {
@@ -23,17 +38,21 @@ const Sidebar = (props) => {
     props.selectUser(selectedUserDetails)
   }
 
-  let showUsers = userList.map((user) => {
-    return (
-      <div className="user-list-el" onClick={(e) => userName_from_click(e)}>
-        <img className="sideBarProfileImg" alt=""></img>
-        <div key={user.key}>{user.username}</div>
-        {/* <span>{lastMessage}</span>
-        <span>{lastMessageTime}</span> */}
-      </div>
-    )
-  })
-  return <div>{showUsers}</div>
+  return (
+    <>
+      {userList.map((user) => (
+        <>
+        <div className="user-list-el" onClick={(e) => userName_from_click(e)}>
+          <img className="sideBarProfileImg" alt=""></img>
+          <div key={user.key}>{user.username}</div>
+         {/* <p> <span>{lastMessage}</span></p> */}
+        <span className="timeSection mine" style={{  alignSelf: 'flexEnd'}}>{lastMessageTime}</span>
+        </div>
+       
+      </>
+      ))}
+    </>
+  )
 }
 
 export default Sidebar
